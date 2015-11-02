@@ -1,7 +1,6 @@
 The Contiki Operating System
 ============================
 
-[![Build Status](https://travis-ci.org/contiki-os/contiki.svg?branch=master)](https://travis-ci.org/contiki-os/contiki/branches)
 
 Contiki is an open source operating system that runs on tiny low-power
 microcontrollers and makes it possible to develop applications that
@@ -14,6 +13,4 @@ power meters, industrial monitoring, radiation monitoring,
 construction site monitoring, alarm systems, remote house monitoring,
 and so on.
 
-For more information, see the Contiki website:
-
-[http://contiki-os.org](http://contiki-os.org)
+For more information, see the Contiki website: [http://contiki-os.org](http://contiki-os.org)
