@@ -1,13 +1,31 @@
-/**
- * \addtogroup Core51822
- * @{
+/*
+ * Copyright (c) CoenRoest * All rights reserved.
  *
- * \file
- * Platform specific configurations for Core51822.
- * Core51822's platform specific definitions required for Contiki
- * The parameters defined are Clock and RTIMER's frequency, UART baud rate,
- * Low frequency clock source and typedef related to clock, rtimer and uip stats.
- *  \author CoenRoest
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #ifndef CONTIKI_CONF_H_
@@ -39,24 +57,16 @@
 #define NOW_REG		2
 #define BCC_REG		3
 
-/** \name Compiler configurations.
- * CCIF and CLIF are defined but used only in Windows based platforms
- * \code#define CCIF
- *  #define CLIF \endcode
- * @{
- */
 /** \showinitializer */
 #define CCIF
 /** \showinitializer */
 #define CLIF
-/** @} */
 
-/** \name Platform typedefs are all unsigned 32 bit
- * @{ */
+
+
 typedef uint32_t clock_time_t;
 typedef uint32_t uip_stats_t;
 typedef uint32_t rtimer_clock_t;
-/** @} */
 
 /** TRUE if a is less than b, otherwise FALSE.
  * rtimer.h typedefs rtimer_clock_t as unsigned short.
@@ -64,10 +74,6 @@ typedef uint32_t rtimer_clock_t;
  */
 #define RTIMER_CLOCK_LT(a,b)    ((int32_t)((a)-(b)) < 0)
 
-/** \anchor nrf-rtimer-definitions
- * \name Definitions for the TIMER1 initialization
- * Used in \ref nrf51-contiki-rtimer module
- * @{*/
 /** The Rtimer's TIMER tick freq is HF freq divided by two to power of value defined here*/
 #define TIMER_PRESCALER 	0
 /** \brief Number of bits used for the Rtimer's TIMER */
@@ -92,11 +98,8 @@ typedef uint32_t rtimer_clock_t;
  *  16MHz = 16MHz/((1<<0)x1). To decrease this frequency \ref TIMER_PRESCALER
  *  can be increased till 9 */
 #define RTIMER_ARCH_SECOND 		(((HFCLK_FREQUENCY)/(1<<TIMER_PRESCALER))/TIMER_COMPARE_FREQ)
-/** @} */
 
-/** \name Definitions for the RTC1 initialization
- * Used in \ref nrf51-contiki-clock module
- * @{*/
+
 /** \brief Frequency of main clock, for which RTC1 is used
  */
 #define CLOCK_CONF_SECOND 64
@@ -110,8 +113,8 @@ typedef uint32_t rtimer_clock_t;
 
 /** Specify if TICKLESS implementation is required*/
 #define TICKLESS true
-/** @} */
+
 /*---------------------------------------------------------------------------*/
 
 #endif /* CONTIKI_CONF_H_ */
-/** @} */
+

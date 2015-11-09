@@ -21,6 +21,7 @@ For more information, see the Contiki website: [http://contiki-os.org](http://co
 
 
 
-History:
+### History:
+----
 
-nordic 51822 soc support @2015.11
+* nordic 51822 soc support @2015.11
