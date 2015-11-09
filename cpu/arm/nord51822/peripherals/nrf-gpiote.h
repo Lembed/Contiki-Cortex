@@ -15,8 +15,6 @@
 #include "nrf.h"
 
 /**
-* @defgroup nrf_gpiote GPIOTE abstraction
-* @{
 * @ingroup nrf_drivers
 * @brief GPIOTE abstraction for configuration of channels.
 */
@@ -147,7 +145,5 @@ static __INLINE void nrf_gpiote_unconfig(uint32_t channel_number)
                                          (GPIOTE_CONFIG_POLARITY_Toggle << GPIOTE_CONFIG_POLARITY_Pos);
 }
 
-
-/** @} */
 
 #endif

@@ -57,7 +57,7 @@ clock_init(void)
  *
  * \return The current clock time, measured in system ticks.
  */
-CCIF clock_time_t
+clock_time_t
 clock_time(void)
 {
   return nrf_clock_time();
@@ -71,7 +71,7 @@ clock_time(void)
  *
  * \return The seconds passed.
  */
-CCIF unsigned long
+unsigned long
 clock_seconds(void)
 {
   return nrf_clock_seconds();
