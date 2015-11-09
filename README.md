@@ -14,3 +14,13 @@ construction site monitoring, alarm systems, remote house monitoring,
 and so on.
 
 For more information, see the Contiki website: [http://contiki-os.org](http://contiki-os.org)
+
+
+
+
+
+
+
+History:
+
+nordic 51822 soc support @2015.11
