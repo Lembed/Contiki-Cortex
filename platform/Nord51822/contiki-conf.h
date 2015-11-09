@@ -47,6 +47,7 @@
 #ifndef NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO   nrf_radio_driver
 #endif /* NETSTACK_CONF_RADIO */
+
 /*---------------------------------------------------------------------------*/
 /** Specify the UART baud rate */
 #define UART_BAUDRATE UART_BAUDRATE_BAUDRATE_Baud38400
@@ -62,8 +63,6 @@
 /** \showinitializer */
 #define CLIF
 
-
-
 typedef uint32_t clock_time_t;
 typedef uint32_t uip_stats_t;
 typedef uint32_t rtimer_clock_t;
@@ -76,6 +75,7 @@ typedef uint32_t rtimer_clock_t;
 
 /** The Rtimer's TIMER tick freq is HF freq divided by two to power of value defined here*/
 #define TIMER_PRESCALER 	0
+
 /** \brief Number of bits used for the Rtimer's TIMER */
 #define TIMER_BITSIZE TIMER_BITMODE_BITMODE_32Bit
 
@@ -83,6 +83,7 @@ typedef uint32_t rtimer_clock_t;
 /** Since the Rtimer is 8 bit the CC interrupt occurs every 2^8 ticks of the TIMER */
 #define TIMER_COMPARE_FREQ	256
 #endif
+
 #if TIMER_BITSIZE == TIMER_BITMODE_BITMODE_32Bit
 /** Since the Rtimer is 8 bit the CC interrupt occurs every 2^8 ticks of the TIMER */
 #define TIMER_COMPARE_FREQ	1
@@ -103,6 +104,7 @@ typedef uint32_t rtimer_clock_t;
 /** \brief Frequency of main clock, for which RTC1 is used
  */
 #define CLOCK_CONF_SECOND 64
+
 /* Check if CLOCK_CONF_SECOND is power of 2 and less than or equal to 32.768 kHz */
 #if (!(!(CLOCK_CONF_SECOND & (CLOCK_CONF_SECOND-1)) && CLOCK_CONF_SECOND && (CLOCK_CONF_SECOND<=32768)))
 #error CLOCK_CONF_SECOND must be a power of 2 with a maximum frequency of 32768 Hz
