@@ -51,7 +51,7 @@ STRUCTGENDIRS += $(CONTIKI_CPU_ARM)/common/usb/mtp
 endif
 
 vpath %.xml $(XMLDIRS)
-vpath %.gen.c $(STRUCTGENDIRS)
+vpath %.gen.c $(STRUCTGENDIRS) 
 
 %.c: %.xml
 	$(XSLTPROC) $(CONTIKI_CPU_ARM)/common/usb/string-descriptors.xslt $^ >$(BUILTSRCDIR)/$@
