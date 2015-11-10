@@ -25,3 +25,6 @@ For more information, see the Contiki website: [http://contiki-os.org](http://co
 ----
 
 * nordic 51822 soc support @2015.11
+* add ntpd apps
+* add syslog apps
+* add websocket apps and examples
