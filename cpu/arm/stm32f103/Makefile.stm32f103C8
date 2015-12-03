@@ -1,7 +1,7 @@
 # Adapted from Makefile.msp430
 
 # Default to STM32F103CB
-SUBTARGET = VE
+SUBTARGET = C8
 
 
 ### Code common for all ARM CPUs

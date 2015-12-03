@@ -1,7 +1,7 @@
 MEMORY
 {
-  CODE (rx) : ORIGIN = 0x8000000, LENGTH = 512K
-  DATA (xrw) : ORIGIN = 0x20000000, LENGTH = 64K
+  CODE (rx) : ORIGIN = 0x8000000, LENGTH = 44K
+  DATA (xrw) : ORIGIN = 0x20000C00, LENGTH = 17K
 }
 
 /* Section Definitions */
