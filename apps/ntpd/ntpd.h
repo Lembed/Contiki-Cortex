@@ -28,8 +28,16 @@
 
 #include <string.h>
 
-#define DEBUG DEBUG_PRINT
-#include "net/uip-debug.h"
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+ 
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 #define NTP_EPOCH            (86400U * (365U * 70U + 17U))
 #define NTPD_PORT             123

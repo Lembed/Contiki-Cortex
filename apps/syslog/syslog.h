@@ -28,8 +28,14 @@
 #include "lib/petsciiconv.h"
 #include <string.h>
 #include "mac.h"
-#define DEBUG DEBUG_PRINT
-#include "net/uip-debug.h"
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 //#define MAX_PAYLOAD_LEN		256
 #define MAX_PAYLOAD_LEN		UIP_APPDATA_SIZE

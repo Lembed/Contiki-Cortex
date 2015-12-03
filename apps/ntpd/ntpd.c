@@ -26,8 +26,8 @@
 
 #include <string.h>
 
-#define DEBUG DEBUG_PRINT
-#include "net/uip-debug.h"
+// #define DEBUG DEBUG_PRINT
+// #include "net/uip-debug.h"
 
 #if CONTIKI_TARGET_AVR_RAVEN
 #include <avr/pgmspace.h>
@@ -99,7 +99,7 @@ PROCESS_THREAD(ntpd_process, ev, data)
   static uip_ipaddr_t ipaddr;
 
   PROCESS_BEGIN();
-  PRINTF("ntpd process started\n");
+  // PRINTF("ntpd process started\n");
 
   //set_connection_address(&ipaddr);
 
