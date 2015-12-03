@@ -1,5 +1,6 @@
-all: blink
+CONTIKI_PROJECT = blink
+all: $(CONTIKI_PROJECT)
 
-MIST=../..
+CONTIKI = ../..
+include $(CONTIKI)/Makefile.include
 
-include $(MIST)/Makefile.mist
