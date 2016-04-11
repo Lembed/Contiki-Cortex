@@ -15,24 +15,3 @@ and so on.
 
 For more information, see the Contiki website: [http://contiki-os.org](http://contiki-os.org)
 
-
-
-
-
-
-
-### History:
-
-----
-
-@2015.11
----
-* + nordic 51822 soc support 
-* + ntpd app
-* + syslog app
-* + websocket apps and examples
-* + aes app
-* + mdns app
-* + udp socket app
-* + httpclient app
-* + replong app
