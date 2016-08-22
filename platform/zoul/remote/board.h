@@ -171,23 +171,6 @@
 #define UART1_RTS_PIN            (-1)
 /** @} */
 /*---------------------------------------------------------------------------*/
-/** \name RE-Mote Button configuration
- *
- * Buttons on the RE-Mote are connected as follows:
- * - BUTTON_USER  -> PA3, S1 user button, shared with bootloader and RTC_INT1
- * - BUTTON_RESET -> RESET_N line, S2 reset both CC2538 and CoP
- * - BUTTON_PIC1W -> shared with SHUTDOWN_ENABLE, not mounted.
- * @{
- */
-/** BUTTON_USER -> PA3 */
-#define BUTTON_USER_PORT       GPIO_A_NUM
-#define BUTTON_USER_PIN        3
-#define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_A
-
-/* Notify various examples that we have Buttons */
-#define PLATFORM_HAS_BUTTON      1
-/** @} */
-/*---------------------------------------------------------------------------*/
 /**
  * \name ADC configuration
  *
@@ -200,6 +183,12 @@
  * - ADC1: up to 3.3V.
  * - ADC2: up to 3.3V, shared with RTC_INT
  * - ADC3: up to 5V, by means of a 2/3 voltage divider.
+ *
+ * Also there are other ADC channels shared by default with Micro SD card and
+ * user button implementations: 
+ * - ADC4: up to 3.3V.
+ * - ADC5: up to 3.3V.
+ * - ADC6: up to 3.3V.
  *
  * ADC inputs can only be on port A.
  * All ADCx are exposed in JP5 connector, but only ADC1 and ADC3 have GND and
@@ -216,9 +205,84 @@
  * @{
  */
 #define ADC_SENSORS_PORT         GPIO_A_NUM /**< ADC GPIO control port */
-#define ADC_SENSORS_ADC1_PIN     5          /**< ADC1 to PA5, 3V3    */
-#define ADC_SENSORS_ADC2_PIN     (-1)       /**< ADC2 to PA4, 3V3    */
-#define ADC_SENSORS_ADC3_PIN     2          /**< ADC3 to PA2, 5V0    */
+
+#ifndef ADC_SENSORS_CONF_ADC1_PIN
+#define ADC_SENSORS_ADC1_PIN     5             /**< ADC1 to PA5, 3V3    */
+#else
+#if ((ADC_SENSORS_CONF_ADC1_PIN != -1) && (ADC_SENSORS_CONF_ADC1_PIN != 5))
+#error "ADC1 channel should be mapped to PA5 or disabled with -1"
+#else
+#define ADC_SENSORS_ADC1_PIN ADC_SENSORS_CONF_ADC1_PIN
+#endif
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC3_PIN
+#define ADC_SENSORS_ADC3_PIN     2             /**< ADC3 to PA2, 5V     */
+#else
+#if ((ADC_SENSORS_CONF_ADC3_PIN != -1) && (ADC_SENSORS_CONF_ADC3_PIN != 2))
+#error "ADC3 channel should be mapped to PA2 or disabled with -1"
+#else
+#define ADC_SENSORS_ADC3_PIN ADC_SENSORS_CONF_ADC3_PIN
+#endif
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC2_PIN
+#define ADC_SENSORS_ADC2_PIN     (-1)          /**< ADC2 no declared    */
+#else
+#define ADC_SENSORS_ADC2_PIN     4             /**< Hard-coded to PA4    */
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC4_PIN
+#define ADC_SENSORS_ADC4_PIN     (-1)          /**< ADC4 not declared    */
+#else
+#define ADC_SENSORS_ADC4_PIN     6             /**< Hard-coded to PA6    */
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC5_PIN
+#define ADC_SENSORS_ADC5_PIN     (-1)          /**< ADC5 not declared    */
+#else
+#define ADC_SENSORS_ADC5_PIN     7             /**< Hard-coded to PA7    */
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC6_PIN
+#define ADC_SENSORS_ADC6_PIN     (-1)             /**< ADC6 not declared    */
+#else
+#define ADC_SENSORS_ADC6_PIN     3             /**< Hard-coded to PA3    */
+#endif
+
+#ifndef ADC_SENSORS_CONF_MAX
+#define ADC_SENSORS_MAX          2             /**< Maximum sensors    */
+#else
+#define ADC_SENSORS_MAX          ADC_SENSORS_CONF_MAX
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/** \name RE-Mote Button configuration
+ *
+ * Buttons on the RE-Mote are connected as follows:
+ * - BUTTON_USER  -> PA3, S1 user button, shared with bootloader and RTC_INT1
+ * - BUTTON_RESET -> RESET_N line, S2 reset both CC2538 and CoP
+ * - BUTTON_PIC1W -> shared with SHUTDOWN_ENABLE, not mounted.
+ * @{
+ */
+/** BUTTON_USER -> PA3 */
+#define BUTTON_USER_PORT       GPIO_A_NUM
+#define BUTTON_USER_PIN        3
+#define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_A
+
+/* Notify various examples that we have an user button.
+ * If ADC6 channel is used, then disable the user button
+ */
+#ifdef PLATFORM_CONF_WITH_BUTTON
+#if (PLATFORM_CONF_WITH_BUTTON && (ADC_SENSORS_ADC6_PIN == 3))
+#error "The ADC6 (PA3) and user button cannot be enabled at the same time" 
+#else
+#define PLATFORM_HAS_BUTTON  (PLATFORM_CONF_WITH_BUTTON && \
+                              !(ADC_SENSORS_ADC6_PIN == 3))
+#endif /* (PLATFORM_CONF_WITH_BUTTON && (ADC_SENSORS_ADC6_PIN == 3)) */
+#else
+#define PLATFORM_HAS_BUTTON  !(ADC_SENSORS_ADC6_PIN == 3)
+#endif /* PLATFORM_CONF_WITH_BUTTON */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -261,12 +325,18 @@
  * These values configure which CC2538 pins to use for the I2C lines, exposed
  * over JP6 connector, also available as testpoints T2 (PC2) and T3 (PC3).
  * The I2C bus is shared with the on-board RTC.
+ * The I2C is exposed over the JP6 header, using a 5-pin connector with 2.54 mm
+ * spacing, providing also D+3.3V, GND and a generic pin that can be used as an
+ * interrupt pin
  * @{
  */
 #define I2C_SCL_PORT             GPIO_C_NUM
 #define I2C_SCL_PIN              3
 #define I2C_SDA_PORT             GPIO_C_NUM
 #define I2C_SDA_PIN              2
+#define I2C_INT_PORT             GPIO_D_NUM
+#define I2C_INT_PIN              1
+#define I2C_INT_VECTOR           NVIC_INT_GPIO_PORT_D
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -348,37 +418,32 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
- * \name Shutdown Mode
+ * \name Power management and shutdown mode
  *
  * The shutdown mode is an ultra-low power operation mode that effectively
  * powers-down the entire RE-Mote (CC2538, CC1200, attached sensors, etc) and
  * only keeps running a power gating timer (NanoTimer), the on-board RTC and
  * an ultra-low power consumption MCU (PIC12F635).  The Shutdown mode allows:
  *
- * - Put the RE-Mote in an ultra-low power sleep (shutdown) drawing 350nA avg.
+ * - Put the RE-Mote in an ultra-low power sleep (shutdown) drawing <200nA avg.
  * - Periodically awake and execute tasks, being the shutdown period selectable
  *   via R47 resistor value (22KOhm as default for 1 minute shutdown period).
- * - Enter shutdown mode before the shutdown period expiration, by sending a
- *   pulse to SHUTDOWN_DONE.
- *
- * To enable or disable the shutdown mode a well-known sequence has to be sent
- * to the PIC12F635 via its 1-Wire pin, when the shutdown mode is enabled,
- * confirmation is done by the PIC echoing-back the command to the CC2538.
+ * - Enter shutdown mode before the shutdown period expiration, by invoking the
+ *   PM_SHUTDOWN_NOW macrp
  *
  * The shutdown mode can be disabled by hardware by short-circuiting or placing
  * an 0Ohm resistor across W1 pad.
  * @{
  */
-#define SHUTDOWN_DONE_PORT       GPIO_D_NUM
-#define SHUTDOWN_DONE_PIN        0
-#define SHUTDOWN_ENABLE_PORT     GPIO_D_NUM
-#define SHUTDOWN_ENABLE_PIN      1
+#define PM_DONE_PORT                GPIO_D_NUM
+#define PM_DONE_PIN                 0
+#define PM_CMD_PORT                 GPIO_D_NUM
+#define PM_CMD_PIN                  1
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
  * \name On-board RTC
  *
- * The Abracon AB0805 RTC is used by both the
  * The shutdown mode can be disabled by hardware by short-circuiting or placing
  * an 0Ohm resistor across W1 pad.  As the RTC_INT1 pin is also shared with the
  * BUTTON_USER, so either disable or not use the user button, or upon receiving

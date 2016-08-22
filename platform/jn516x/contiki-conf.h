@@ -44,11 +44,11 @@
 #endif /* CCM_STAR_CONF */
 
 #ifndef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     tschmac_driver
+#define NETSTACK_CONF_MAC     csma_driver
 #endif /* NETSTACK_CONF_MAC */
 
 #ifndef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nordc_driver
+#define NETSTACK_CONF_RDC     nullrdc_driver
 #endif /* NETSTACK_CONF_RDC */
 
 #ifndef NETSTACK_CONF_RADIO
@@ -154,9 +154,6 @@
 #define SICSLOWPAN_CONF_MAXAGE                  8
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
-#ifndef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
-#define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   5
-#endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 
 #define UIP_CONF_DHCP_LIGHT

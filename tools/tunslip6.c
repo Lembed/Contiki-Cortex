@@ -32,7 +32,7 @@
  *
  */
 
-/* Below define allows importing saved output into Wireshark as "Raw IP" packet type */
+ /* Below define allows importing saved output into Wireshark as "Raw IP" packet type */
 #define WIRESHARK_IMPORT_FORMAT 1
 
 #include <stdio.h>
@@ -67,12 +67,12 @@ int verbose = 1;
 const char *ipaddr;
 const char *netmask;
 int slipfd = 0;
-uint16_t basedelay = 0, delaymsec = 0;
-uint32_t startsec, startmsec, delaystartsec, delaystartmsec;
-int timestamp = 0, flowcontrol = 0, showprogress = 0, flowcontrol_xonxoff = 0;
+uint16_t basedelay=0,delaymsec=0;
+uint32_t startsec,startmsec,delaystartsec,delaystartmsec;
+int timestamp = 0, flowcontrol=0, showprogress=0, flowcontrol_xonxoff=0;
 
 int ssystem(const char *fmt, ...)
-__attribute__((__format__ (__printf__, 1, 2)));
+     __attribute__((__format__ (__printf__, 1, 2)));
 void write_to_serial(int outfd, void *inbuf, int len);
 
 void slip_send(int fd, unsigned char c);
@@ -116,7 +116,7 @@ ssystem(const char *fmt, ...)
 void *
 get_in_addr(struct sockaddr *sa)
 {
-  if (sa->sa_family == AF_INET) {
+  if(sa->sa_family == AF_INET) {
     return &(((struct sockaddr_in*)sa)->sin_addr);
   }
   return &(((struct sockaddr_in6*)sa)->sin6_addr);
@@ -124,29 +124,29 @@ get_in_addr(struct sockaddr *sa)
 void
 stamptime(void)
 {
-  static long startsecs = 0, startmsecs = 0;
-  long secs, msecs;
+  static long startsecs=0,startmsecs=0;
+  long secs,msecs;
   struct timeval tv;
   time_t t;
   struct tm *tmp;
   char timec[20];
 
   gettimeofday(&tv, NULL) ;
-  msecs = tv.tv_usec / 1000;
-  secs = tv.tv_sec;
+  msecs=tv.tv_usec/1000;
+  secs=tv.tv_sec;
   if (startsecs) {
-    secs -= startsecs;
-    msecs -= startmsecs;
-    if (msecs < 0) {secs--; msecs += 1000;}
-    fprintf(stderr, "%04lu.%03lu ", secs, msecs);
+    secs -=startsecs;
+    msecs-=startmsecs;
+    if (msecs<0) {secs--;msecs+=1000;}
+    fprintf(stderr,"%04lu.%03lu ", secs, msecs);
   } else {
-    startsecs = secs;
-    startmsecs = msecs;
-    t = time(NULL);
-    tmp = localtime(&t);
-    strftime(timec, sizeof(timec), "%T", tmp);
+    startsecs=secs;
+    startmsecs=msecs;
+    t=time(NULL);
+    tmp=localtime(&t);
+    strftime(timec,sizeof(timec),"%T",tmp);
 //    fprintf(stderr,"\n%s.%03lu ",timec,msecs);
-    fprintf(stderr, "\n%s ", timec);
+    fprintf(stderr,"\n%s ",timec);
   }
 }
 
@@ -154,10 +154,10 @@ int
 is_sensible_string(const unsigned char *s, int len)
 {
   int i;
-  for (i = 1; i < len; i++) {
-    if (s[i] == 0 || s[i] == '\r' || s[i] == '\n' || s[i] == '\t') {
+  for(i = 1; i < len; i++) {
+    if(s[i] == 0 || s[i] == '\r' || s[i] == '\n' || s[i] == '\t') {
       continue;
-    } else if (s[i] < ' ' || '~' < s[i]) {
+    } else if(s[i] < ' ' || '~' < s[i]) {
       return 0;
     }
   }
@@ -175,127 +175,127 @@ serial_to_tun(FILE *inslip, int outfd)
     unsigned char inbuf[2000];
   } uip;
   static int inbufptr = 0;
-  int ret, i;
+  int ret,i;
   unsigned char c;
 
 #ifdef linux
   ret = fread(&c, 1, 1, inslip);
-  if (ret == -1 || ret == 0) err(1, "serial_to_tun: read");
+  if(ret == -1 || ret == 0) err(1, "serial_to_tun: read");
   goto after_fread;
 #endif
 
-read_more:
-  if (inbufptr >= sizeof(uip.inbuf)) {
-    if (timestamp) stamptime();
-    fprintf(stderr, "*** dropping large %d byte packet\n", inbufptr);
-    inbufptr = 0;
+ read_more:
+  if(inbufptr >= sizeof(uip.inbuf)) {
+     if(timestamp) stamptime();
+     fprintf(stderr, "*** dropping large %d byte packet\n",inbufptr);
+	 inbufptr = 0;
   }
   ret = fread(&c, 1, 1, inslip);
 #ifdef linux
-after_fread:
+ after_fread:
 #endif
-  if (ret == -1) {
+  if(ret == -1) {
     err(1, "serial_to_tun: read");
   }
-  if (ret == 0) {
+  if(ret == 0) {
     clearerr(inslip);
     return;
   }
   PROGRESS(".");
-  switch (c) {
+  switch(c) {
   case SLIP_END:
-    if (inbufptr > 0) {
-      if (uip.inbuf[0] == '!') {
-        if (uip.inbuf[1] == 'M') {
-          /* Read gateway MAC address and autoconfigure tap0 interface */
-          char macs[24];
-          int i, pos;
-          for (i = 0, pos = 0; i < 16; i++) {
-            macs[pos++] = uip.inbuf[2 + i];
-            if ((i & 1) == 1 && i < 14) {
-              macs[pos++] = ':';
-            }
-          }
+    if(inbufptr > 0) {
+      if(uip.inbuf[0] == '!') {
+	if(uip.inbuf[1] == 'M') {
+	  /* Read gateway MAC address and autoconfigure tap0 interface */
+	  char macs[24];
+	  int i, pos;
+	  for(i = 0, pos = 0; i < 16; i++) {
+	    macs[pos++] = uip.inbuf[2 + i];
+	    if((i & 1) == 1 && i < 14) {
+	      macs[pos++] = ':';
+	    }
+	  }
+          if(timestamp) stamptime();
+	  macs[pos] = '\0';
+//	  printf("*** Gateway's MAC address: %s\n", macs);
+	  fprintf(stderr,"*** Gateway's MAC address: %s\n", macs);
           if (timestamp) stamptime();
-          macs[pos] = '\0';
-//    printf("*** Gateway's MAC address: %s\n", macs);
-          fprintf(stderr, "*** Gateway's MAC address: %s\n", macs);
+	  ssystem("ifconfig %s down", tundev);
           if (timestamp) stamptime();
-          ssystem("ifconfig %s down", tundev);
+	  ssystem("ifconfig %s hw ether %s", tundev, &macs[6]);
           if (timestamp) stamptime();
-          ssystem("ifconfig %s hw ether %s", tundev, &macs[6]);
-          if (timestamp) stamptime();
-          ssystem("ifconfig %s up", tundev);
-        }
-      } else if (uip.inbuf[0] == '?') {
-        if (uip.inbuf[1] == 'P') {
+	  ssystem("ifconfig %s up", tundev);
+	}
+      } else if(uip.inbuf[0] == '?') {
+	if(uip.inbuf[1] == 'P') {
           /* Prefix info requested */
           struct in6_addr addr;
-          int i;
-          char *s = strchr(ipaddr, '/');
-          if (s != NULL) {
-            *s = '\0';
-          }
+	  int i;
+	  char *s = strchr(ipaddr, '/');
+	  if(s != NULL) {
+	    *s = '\0';
+	  }
           inet_pton(AF_INET6, ipaddr, &addr);
-          if (timestamp) stamptime();
-          fprintf(stderr, "*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
-                  ipaddr,
-                  addr.s6_addr[0], addr.s6_addr[1],
-                  addr.s6_addr[2], addr.s6_addr[3],
-                  addr.s6_addr[4], addr.s6_addr[5],
-                  addr.s6_addr[6], addr.s6_addr[7]);
-          slip_send(slipfd, '!');
-          slip_send(slipfd, 'P');
-          for (i = 0; i < 8; i++) {
-            /* need to call the slip_send_char for stuffing */
-            slip_send_char(slipfd, addr.s6_addr[i]);
-          }
-          slip_send(slipfd, SLIP_END);
+          if(timestamp) stamptime();
+          fprintf(stderr,"*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
+		 ipaddr,
+		 addr.s6_addr[0], addr.s6_addr[1],
+		 addr.s6_addr[2], addr.s6_addr[3],
+		 addr.s6_addr[4], addr.s6_addr[5],
+		 addr.s6_addr[6], addr.s6_addr[7]);
+	  slip_send(slipfd, '!');
+	  slip_send(slipfd, 'P');
+	  for(i = 0; i < 8; i++) {
+	    /* need to call the slip_send_char for stuffing */
+	    slip_send_char(slipfd, addr.s6_addr[i]);
+	  }
+	  slip_send(slipfd, SLIP_END);
         }
 #define DEBUG_LINE_MARKER '\r'
-      } else if (uip.inbuf[0] == DEBUG_LINE_MARKER) {
-        fwrite(uip.inbuf + 1, inbufptr - 1, 1, stdout);
-      } else if (is_sensible_string(uip.inbuf, inbufptr)) {
-        if (verbose == 1) { /* strings already echoed below for verbose>1 */
+      } else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
+	fwrite(uip.inbuf + 1, inbufptr - 1, 1, stdout);
+      } else if(is_sensible_string(uip.inbuf, inbufptr)) {
+        if(verbose==1) {   /* strings already echoed below for verbose>1 */
           if (timestamp) stamptime();
           fwrite(uip.inbuf, inbufptr, 1, stdout);
         }
       } else {
-        if (verbose > 2) {
+        if(verbose>2) {
           if (timestamp) stamptime();
           printf("Packet from SLIP of length %d - write TUN\n", inbufptr);
-          if (verbose > 4) {
+          if (verbose>4) {
 #if WIRESHARK_IMPORT_FORMAT
             printf("0000");
-            for (i = 0; i < inbufptr; i++) printf(" %02x", uip.inbuf[i]);
+	        for(i = 0; i < inbufptr; i++) printf(" %02x",uip.inbuf[i]);
 #else
             printf("         ");
-            for (i = 0; i < inbufptr; i++) {
+            for(i = 0; i < inbufptr; i++) {
               printf("%02x", uip.inbuf[i]);
-              if ((i & 3) == 3) printf(" ");
-              if ((i & 15) == 15) printf("\n         ");
+              if((i & 3) == 3) printf(" ");
+              if((i & 15) == 15) printf("\n         ");
             }
 #endif
             printf("\n");
           }
         }
-        if (write(outfd, uip.inbuf, inbufptr) != inbufptr) {
-          err(1, "serial_to_tun: write");
-        }
+	if(write(outfd, uip.inbuf, inbufptr) != inbufptr) {
+	  err(1, "serial_to_tun: write");
+	}
       }
       inbufptr = 0;
     }
     break;
 
   case SLIP_ESC:
-    if (fread(&c, 1, 1, inslip) != 1) {
+    if(fread(&c, 1, 1, inslip) != 1) {
       clearerr(inslip);
       /* Put ESC back and give up! */
       ungetc(SLIP_ESC, inslip);
       return;
     }
 
-    switch (c) {
+    switch(c) {
     case SLIP_ESC_END:
       c = SLIP_END;
       break;
@@ -309,24 +309,24 @@ after_fread:
       c = XOFF;
       break;
     }
-  /* FALLTHROUGH */
+    /* FALLTHROUGH */
   default:
     uip.inbuf[inbufptr++] = c;
 
     /* Echo lines as they are received for verbose=2,3,5+ */
     /* Echo all printable characters for verbose==4 */
-    if ((verbose == 2) || (verbose == 3) || (verbose > 4)) {
-      if (c == '\n') {
-        if (is_sensible_string(uip.inbuf, inbufptr)) {
+    if((verbose==2) || (verbose==3) || (verbose>4)) {
+      if(c=='\n') {
+        if(is_sensible_string(uip.inbuf, inbufptr)) {
           if (timestamp) stamptime();
           fwrite(uip.inbuf, inbufptr, 1, stdout);
-          inbufptr = 0;
+          inbufptr=0;
         }
       }
-    } else if (verbose == 4) {
-      if (c == 0 || c == '\r' || c == '\n' || c == '\t' || (c >= ' ' && c <= '~')) {
-        fwrite(&c, 1, 1, stdout);
-        if (c == '\n') if (timestamp) stamptime();
+    } else if(verbose==4) {
+      if(c == 0 || c == '\r' || c == '\n' || c == '\t' || (c >= ' ' && c <= '~')) {
+	fwrite(&c, 1, 1, stdout);
+        if(c=='\n') if(timestamp) stamptime();
       }
     }
 
@@ -342,7 +342,7 @@ int slip_end, slip_begin;
 void
 slip_send_char(int fd, unsigned char c)
 {
-  switch (c) {
+  switch(c) {
   case SLIP_END:
     slip_send(fd, SLIP_ESC);
     slip_send(fd, SLIP_ESC_END);
@@ -352,7 +352,7 @@ slip_send_char(int fd, unsigned char c)
     slip_send(fd, SLIP_ESC_ESC);
     break;
   case XON:
-    if (flowcontrol_xonxoff) {
+    if(flowcontrol_xonxoff) {
       slip_send(fd, SLIP_ESC);
       slip_send(fd, SLIP_ESC_XON);
     } else {
@@ -360,7 +360,7 @@ slip_send_char(int fd, unsigned char c)
     }
     break;
   case XOFF:
-    if (flowcontrol_xonxoff) {
+    if(flowcontrol_xonxoff) {
       slip_send(fd, SLIP_ESC);
       slip_send(fd, SLIP_ESC_XOFF);
     } else {
@@ -376,7 +376,7 @@ slip_send_char(int fd, unsigned char c)
 void
 slip_send(int fd, unsigned char c)
 {
-  if (slip_end >= sizeof(slip_buf)) {
+  if(slip_end >= sizeof(slip_buf)) {
     err(1, "slip_send overflow");
   }
   slip_buf[slip_end] = c;
@@ -394,19 +394,19 @@ slip_flushbuf(int fd)
 {
   int n;
 
-  if (slip_empty()) {
+  if(slip_empty()) {
     return;
   }
 
   n = write(fd, slip_buf + slip_begin, (slip_end - slip_begin));
 
-  if (n == -1 && errno != EAGAIN) {
+  if(n == -1 && errno != EAGAIN) {
     err(1, "slip_flushbuf write failed");
-  } else if (n == -1) {
-    PROGRESS("Q");    /* Outqueueis full! */
+  } else if(n == -1) {
+    PROGRESS("Q");		/* Outqueueis full! */
   } else {
     slip_begin += n;
-    if (slip_begin == slip_end) {
+    if(slip_begin == slip_end) {
       slip_begin = slip_end = 0;
     }
   }
@@ -418,19 +418,19 @@ write_to_serial(int outfd, void *inbuf, int len)
   u_int8_t *p = inbuf;
   int i;
 
-  if (verbose > 2) {
+  if(verbose>2) {
     if (timestamp) stamptime();
     printf("Packet from TUN of length %d - write SLIP\n", len);
-    if (verbose > 4) {
+    if (verbose>4) {
 #if WIRESHARK_IMPORT_FORMAT
       printf("0000");
-      for (i = 0; i < len; i++) printf(" %02x", p[i]);
+	  for(i = 0; i < len; i++) printf(" %02x", p[i]);
 #else
       printf("         ");
-      for (i = 0; i < len; i++) {
+      for(i = 0; i < len; i++) {
         printf("%02x", p[i]);
-        if ((i & 3) == 3) printf(" ");
-        if ((i & 15) == 15) printf("\n         ");
+        if((i & 3) == 3) printf(" ");
+        if((i & 15) == 15) printf("\n         ");
       }
 #endif
       printf("\n");
@@ -442,8 +442,8 @@ write_to_serial(int outfd, void *inbuf, int len)
    */
   /* slip_send(outfd, SLIP_END); */
 
-  for (i = 0; i < len; i++) {
-    switch (p[i]) {
+  for(i = 0; i < len; i++) {
+    switch(p[i]) {
     case SLIP_END:
       slip_send(outfd, SLIP_ESC);
       slip_send(outfd, SLIP_ESC_END);
@@ -453,7 +453,7 @@ write_to_serial(int outfd, void *inbuf, int len)
       slip_send(outfd, SLIP_ESC_ESC);
       break;
     case XON:
-      if (flowcontrol_xonxoff) {
+      if(flowcontrol_xonxoff) {
         slip_send(outfd, SLIP_ESC);
         slip_send(outfd, SLIP_ESC_XON);
       } else {
@@ -461,7 +461,7 @@ write_to_serial(int outfd, void *inbuf, int len)
       }
       break;
     case XOFF:
-      if (flowcontrol_xonxoff) {
+      if(flowcontrol_xonxoff) {
         slip_send(outfd, SLIP_ESC);
         slip_send(outfd, SLIP_ESC_XOFF);
       } else {
@@ -481,29 +481,30 @@ write_to_serial(int outfd, void *inbuf, int len)
 /*
  * Read from tun, write to slip.
  */
-int tun_to_serial(int infd, int outfd)
+int
+tun_to_serial(int infd, int outfd)
 {
   struct {
     unsigned char inbuf[2000];
   } uip;
-
   int size;
 
-  if ((size = read(infd, uip.inbuf, 2000)) == -1) err(1, "tun_to_serial: read");
+  if((size = read(infd, uip.inbuf, 2000)) == -1) err(1, "tun_to_serial: read");
 
   write_to_serial(outfd, uip.inbuf, size);
   return size;
 }
 
-void stty_telos(int fd)
+void
+stty_telos(int fd)
 {
   struct termios tty;
   speed_t speed = b_rate;
   int i;
 
-  if (tcflush(fd, TCIOFLUSH) == -1) err(1, "tcflush");
+  if(tcflush(fd, TCIOFLUSH) == -1) err(1, "tcflush");
 
-  if (tcgetattr(fd, &tty) == -1) err(1, "tcgetattr");
+  if(tcgetattr(fd, &tty) == -1) err(1, "tcgetattr");
 
   cfmakeraw(&tty);
 
@@ -515,8 +516,7 @@ void stty_telos(int fd)
   else
     tty.c_cflag &= ~CRTSCTS;
   tty.c_iflag &= ~IXON;
-
-  if (flowcontrol_xonxoff) {
+  if(flowcontrol_xonxoff) {
     tty.c_iflag |= IXOFF | IXANY;
   } else {
     tty.c_iflag &= ~IXOFF & ~IXANY;
@@ -527,23 +527,23 @@ void stty_telos(int fd)
   cfsetispeed(&tty, speed);
   cfsetospeed(&tty, speed);
 
-  if (tcsetattr(fd, TCSAFLUSH, &tty) == -1) err(1, "tcsetattr");
+  if(tcsetattr(fd, TCSAFLUSH, &tty) == -1) err(1, "tcsetattr");
 
 #if 1
   /* Nonblocking read and write. */
   /* if(fcntl(fd, F_SETFL, O_NONBLOCK) == -1) err(1, "fcntl"); */
 
   tty.c_cflag |= CLOCAL;
-  if (tcsetattr(fd, TCSAFLUSH, &tty) == -1) err(1, "tcsetattr");
+  if(tcsetattr(fd, TCSAFLUSH, &tty) == -1) err(1, "tcsetattr");
 
   i = TIOCM_DTR;
-  if (ioctl(fd, TIOCMBIS, &i) == -1) err(1, "ioctl");
+  if(ioctl(fd, TIOCMBIS, &i) == -1) err(1, "ioctl");
 #endif
 
-  usleep(10 * 1000);  /* Wait for hardware 10ms. */
+  usleep(10*1000);		/* Wait for hardware 10ms. */
 
   /* Flush input and output buffers. */
-  if (tcflush(fd, TCIOFLUSH) == -1) err(1, "tcflush");
+  if(tcflush(fd, TCIOFLUSH) == -1) err(1, "tcflush");
 }
 
 int
@@ -565,7 +565,7 @@ tun_alloc(char *dev, int tap)
   struct ifreq ifr;
   int fd, err;
 
-  if ( (fd = open("/dev/net/tun", O_RDWR)) < 0 ) {
+  if( (fd = open("/dev/net/tun", O_RDWR)) < 0 ) {
     perror("can not open /dev/net/tun");
     return -1;
   }
@@ -578,10 +578,10 @@ tun_alloc(char *dev, int tap)
    *        IFF_NO_PI - Do not provide packet information
    */
   ifr.ifr_flags = (tap ? IFF_TAP : IFF_TUN) | IFF_NO_PI;
-  if (*dev != 0)
+  if(*dev != 0)
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
-  if ((err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
+  if((err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
     close(fd);
     fprintf(stderr, "can not tunsetiff to %s (flags=%08x): %s\n", dev, ifr.ifr_flags,
             strerror(errno));
@@ -612,9 +612,9 @@ cleanup(void)
   /* ssystem("arp -d %s", ipaddr); */
   if (timestamp) stamptime();
   ssystem("netstat -nr"
-          " | awk '{ if ($2 == \"%s\") print \"route delete -net \"$1; }'"
-          " | sh",
-          tundev);
+	  " | awk '{ if ($2 == \"%s\") print \"route delete -net \"$1; }'"
+	  " | sh",
+	  tundev);
 #else
   {
     char *  itfaddr = strdup(ipaddr);
@@ -634,7 +634,7 @@ void
 sigcleanup(int signo)
 {
   fprintf(stderr, "signal %d\n", signo);
-  exit(0);      /* exit(0) will call cleanup() */
+  exit(0);			/* exit(0) will call cleanup() */
 }
 
 static int got_sigalarm;
@@ -667,62 +667,62 @@ ifconf(const char *tundev, const char *ipaddr)
   if (timestamp) stamptime();
   ssystem("ifconfig %s add %s", tundev, ipaddr);
 
-  /* radvd needs a link local address for routing */
+/* radvd needs a link local address for routing */
 #if 0
-  /* fe80::1/64 is good enough */
+/* fe80::1/64 is good enough */
   ssystem("ifconfig %s add fe80::1/64", tundev);
 #elif 1
-  /* Generate a link local address a la sixxs/aiccu */
-  /* First a full parse, stripping off the prefix length */
+/* Generate a link local address a la sixxs/aiccu */
+/* First a full parse, stripping off the prefix length */
   {
     char lladdr[40];
-    char c, *ptr = (char *)ipaddr;
-    uint16_t digit, ai, a[8], cc, scc, i;
-    for (ai = 0; ai < 8; ai++) {
-      a[ai] = 0;
+    char c, *ptr=(char *)ipaddr;
+    uint16_t digit,ai,a[8],cc,scc,i;
+    for(ai=0; ai<8; ai++) {
+      a[ai]=0;
     }
-    ai = 0;
-    cc = scc = 0;
-    while (c = *ptr++) {
-      if (c == '/') break;
-      if (c == ':') {
-        if (cc)
-          scc = ai;
-        cc = 1;
-        if (++ai > 7) break;
+    ai=0;
+    cc=scc=0;
+    while(c=*ptr++) {
+      if(c=='/') break;
+      if(c==':') {
+	if(cc)
+	  scc = ai;
+	cc = 1;
+	if(++ai>7) break;
       } else {
-        cc = 0;
-        digit = c - '0';
-        if (digit > 9)
-          digit = 10 + (c & 0xdf) - 'A';
-        a[ai] = (a[ai] << 4) + digit;
+	cc=0;
+	digit = c-'0';
+	if (digit > 9)
+	  digit = 10 + (c & 0xdf) - 'A';
+	a[ai] = (a[ai] << 4) + digit;
       }
     }
     /* Get # elided and shift what's after to the end */
-    cc = 8 - ai;
-    for (i = 0; i < cc; i++) {
-      if ((8 - i - cc) <= scc) {
-        a[7 - i] = 0;
+    cc=8-ai;
+    for(i=0;i<cc;i++) {
+      if ((8-i-cc) <= scc) {
+	a[7-i] = 0;
       } else {
-        a[7 - i] = a[8 - i - cc];
-        a[8 - i - cc] = 0;
+	a[7-i] = a[8-i-cc];
+	a[8-i-cc]=0;
       }
     }
-    sprintf(lladdr, "fe80::%x:%x:%x:%x", a[1] & 0xfefd, a[2], a[3], a[7]);
+    sprintf(lladdr,"fe80::%x:%x:%x:%x",a[1]&0xfefd,a[2],a[3],a[7]);
     if (timestamp) stamptime();
     ssystem("ifconfig %s add %s/64", tundev, lladdr);
   }
 #endif /* link local */
 #elif defined(__APPLE__)
   {
-    char * itfaddr = strdup(ipaddr);
-    char * prefix = index(itfaddr, '/');
-    if ( prefix != NULL ) {
-      *prefix = '\0';
-      prefix++;
-    } else {
-      prefix = "64";
-    }
+	char * itfaddr = strdup(ipaddr);
+	char * prefix = index(itfaddr, '/');
+	if ( prefix != NULL ) {
+		*prefix = '\0';
+		prefix++;
+	} else {
+		prefix = "64";
+	}
     if (timestamp) stamptime();
     ssystem("ifconfig %s inet6 mtu %d up", tundev, devmtu);
     if (timestamp) stamptime();
@@ -762,39 +762,39 @@ main(int argc, char **argv)
   prog = argv[0];
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while ((c = getopt(argc, argv, "B:HILPhXM:s:t:v::d::a:p:T")) != -1) {
-    switch (c) {
+  while((c = getopt(argc, argv, "B:HILPhXM:s:t:v::d::a:p:T")) != -1) {
+    switch(c) {
     case 'B':
       baudrate = atoi(optarg);
       break;
 
     case 'H':
-      flowcontrol = 1;
+      flowcontrol=1;
       break;
 
     case 'X':
-      flowcontrol_xonxoff = 1;
+      flowcontrol_xonxoff=1;
       break;
 
     case 'L':
-      timestamp = 1;
+      timestamp=1;
       break;
 
     case 'M':
-      devmtu = atoi(optarg);
-      if (devmtu < MIN_DEVMTU) {
+      devmtu=atoi(optarg);
+      if(devmtu < MIN_DEVMTU) {
         devmtu = MIN_DEVMTU;
       }
 
     case 'P':
-      showprogress = 1;
+      showprogress=1;
       break;
 
     case 's':
-      if (strncmp("/dev/", optarg, 5) == 0) {
-        siodev = optarg + 5;
+      if(strncmp("/dev/", optarg, 5) == 0) {
+	siodev = optarg + 5;
       } else {
-        siodev = optarg;
+	siodev = optarg;
       }
       break;
 
@@ -804,10 +804,10 @@ main(int argc, char **argv)
       break;
 
     case 't':
-      if (strncmp("/dev/", optarg, 5) == 0) {
-        strncpy(tundev, optarg + 5, sizeof(tundev));
+      if(strncmp("/dev/", optarg, 5) == 0) {
+	strncpy(tundev, optarg + 5, sizeof(tundev));
       } else {
-        strncpy(tundev, optarg, sizeof(tundev));
+	strncpy(tundev, optarg, sizeof(tundev));
       }
       break;
 
@@ -836,68 +836,60 @@ main(int argc, char **argv)
     case '?':
     case 'h':
     default:
-      fprintf(stderr, "usage:  %s [options] ipaddress\n", prog);
-      fprintf(stderr, "example: tunslip6 -L -v2 -s ttyUSB1 aaaa::1/64\n");
-      fprintf(stderr, "Options are:\n");
+fprintf(stderr,"usage:  %s [options] ipaddress\n", prog);
+fprintf(stderr,"example: tunslip6 -L -v2 -s ttyUSB1 fd00::1/64\n");
+fprintf(stderr,"Options are:\n");
 #ifndef __APPLE__
-      fprintf(stderr, " -B baudrate    9600,19200,38400,57600,115200 (default),230400,460800,921600\n");
+fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default),230400,460800,921600\n");
 #else
-      fprintf(stderr, " -B baudrate    9600,19200,38400,57600,115200 (default),230400\n");
+fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default),230400\n");
 #endif
-      fprintf(stderr, " -H             Hardware CTS/RTS flow control (default disabled)\n");
-      fprintf(stderr, " -I             Inquire IP address\n");
-      fprintf(stderr, " -X             Software XON/XOFF flow control (default disabled)\n");
-      fprintf(stderr, " -L             Log output format (adds time stamps)\n");
-      fprintf(stderr, " -s siodev      Serial device (default /dev/ttyUSB0)\n");
-      fprintf(stderr, " -M             Interface MTU (default and min: 1280)\n");
-      fprintf(stderr, " -T             Make tap interface (default is tun interface)\n");
-      fprintf(stderr, " -t tundev      Name of interface (default tap0 or tun0)\n");
-      fprintf(stderr, " -v[level]      Verbosity level\n");
-      fprintf(stderr, "    -v0         No messages\n");
-      fprintf(stderr, "    -v1         Encapsulated SLIP debug messages (default)\n");
-      fprintf(stderr, "    -v2         Printable strings after they are received\n");
-      fprintf(stderr, "    -v3         Printable strings and SLIP packet notifications\n");
-      fprintf(stderr, "    -v4         All printable characters as they are received\n");
-      fprintf(stderr, "    -v5         All SLIP packets in hex\n");
-      fprintf(stderr, "    -v          Equivalent to -v3\n");
-      fprintf(stderr, " -d[basedelay]  Minimum delay between outgoing SLIP packets.\n");
-      fprintf(stderr, "                Actual delay is basedelay*(#6LowPAN fragments) milliseconds.\n");
-      fprintf(stderr, "                -d is equivalent to -d10.\n");
-      fprintf(stderr, " -a serveraddr  \n");
-      fprintf(stderr, " -p serverport  \n");
-      exit(1);
+fprintf(stderr," -H             Hardware CTS/RTS flow control (default disabled)\n");
+fprintf(stderr," -I             Inquire IP address\n");
+fprintf(stderr," -X             Software XON/XOFF flow control (default disabled)\n");
+fprintf(stderr," -L             Log output format (adds time stamps)\n");
+fprintf(stderr," -s siodev      Serial device (default /dev/ttyUSB0)\n");
+fprintf(stderr," -M             Interface MTU (default and min: 1280)\n");
+fprintf(stderr," -T             Make tap interface (default is tun interface)\n");
+fprintf(stderr," -t tundev      Name of interface (default tap0 or tun0)\n");
+fprintf(stderr," -v[level]      Verbosity level\n");
+fprintf(stderr,"    -v0         No messages\n");
+fprintf(stderr,"    -v1         Encapsulated SLIP debug messages (default)\n");
+fprintf(stderr,"    -v2         Printable strings after they are received\n");
+fprintf(stderr,"    -v3         Printable strings and SLIP packet notifications\n");
+fprintf(stderr,"    -v4         All printable characters as they are received\n");
+fprintf(stderr,"    -v5         All SLIP packets in hex\n");
+fprintf(stderr,"    -v          Equivalent to -v3\n");
+fprintf(stderr," -d[basedelay]  Minimum delay between outgoing SLIP packets.\n");
+fprintf(stderr,"                Actual delay is basedelay*(#6LowPAN fragments) milliseconds.\n");
+fprintf(stderr,"                -d is equivalent to -d10.\n");
+fprintf(stderr," -a serveraddr  \n");
+fprintf(stderr," -p serverport  \n");
+exit(1);
       break;
     }
   }
   argc -= (optind - 1);
   argv += (optind - 1);
 
-  if (argc != 2 && argc != 3) {
+  if(argc != 2 && argc != 3) {
     err(1, "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-t tundev] [-T] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport] ipaddress", prog);
   }
   ipaddr = argv[1];
 
-  if (baudrate != -2) { /* -2: use default baudrate */
+  if(baudrate != -2) { /* -2: use default baudrate */
     b_rate = select_baudrate(baudrate);
-    if (b_rate == 0) {
+    if(b_rate == 0) {
       err(1, "unknown baudrate %d", baudrate);
     }
   }
 
-  if (*tundev == '\0') {
-    /* Use default. */
-    if (tap) {
-      strcpy(tundev, "tap0");
-    } else {
-      strcpy(tundev, "tun0");
-    }
-  }
-  if (host != NULL) {
+  if(host != NULL) {
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
 
-    if (port == NULL) {
+    if(port == NULL) {
       port = "60001";
     }
 
@@ -905,19 +897,19 @@ main(int argc, char **argv)
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    if ((rv = getaddrinfo(host, port, &hints, &servinfo)) != 0) {
+    if((rv = getaddrinfo(host, port, &hints, &servinfo)) != 0) {
       err(1, "getaddrinfo: %s", gai_strerror(rv));
     }
 
     /* loop through all the results and connect to the first we can */
-    for (p = servinfo; p != NULL; p = p->ai_next) {
-      if ((slipfd = socket(p->ai_family, p->ai_socktype,
-                           p->ai_protocol)) == -1) {
+    for(p = servinfo; p != NULL; p = p->ai_next) {
+      if((slipfd = socket(p->ai_family, p->ai_socktype,
+                          p->ai_protocol)) == -1) {
         perror("client: socket");
         continue;
       }
 
-      if (connect(slipfd, p->ai_addr, p->ai_addrlen) == -1) {
+      if(connect(slipfd, p->ai_addr, p->ai_addrlen) == -1) {
         close(slipfd);
         perror("client: connect");
         continue;
@@ -925,7 +917,7 @@ main(int argc, char **argv)
       break;
     }
 
-    if (p == NULL) {
+    if(p == NULL) {
       err(1, "can't connect to ``%s:%s''", host, port);
     }
 
@@ -939,24 +931,24 @@ main(int argc, char **argv)
     freeaddrinfo(servinfo);
 
   } else {
-    if (siodev != NULL) {
+    if(siodev != NULL) {
       slipfd = devopen(siodev, O_RDWR | O_NONBLOCK);
-      if (slipfd == -1) {
-        err(1, "can't open siodev ``/dev/%s''", siodev);
+      if(slipfd == -1) {
+	err(1, "can't open siodev ``/dev/%s''", siodev);
       }
     } else {
       static const char *siodevs[] = {
         "ttyUSB0", "cuaU0", "ucom0" /* linux, fbsd6, fbsd5 */
       };
       int i;
-      for (i = 0; i < 3; i++) {
+      for(i = 0; i < 3; i++) {
         siodev = siodevs[i];
         slipfd = devopen(siodev, O_RDWR | O_NONBLOCK);
-        if (slipfd != -1) {
+        if(slipfd != -1) {
           break;
         }
       }
-      if (slipfd == -1) {
+      if(slipfd == -1) {
         err(1, "can't open siodev");
       }
     }
@@ -966,10 +958,10 @@ main(int argc, char **argv)
   }
   slip_send(slipfd, SLIP_END);
   inslip = fdopen(slipfd, "r");
-  if (inslip == NULL) err(1, "main: fdopen");
+  if(inslip == NULL) err(1, "main: fdopen");
 
   tunfd = tun_alloc(tundev, tap);
-  if (tunfd == -1) err(1, "main: open /dev/tun");
+  if(tunfd == -1) err(1, "main: open /dev/tun");
   if (timestamp) stamptime();
   fprintf(stderr, "opened %s device ``/dev/%s''\n",
           tap ? "tap" : "tun", tundev);
@@ -981,12 +973,12 @@ main(int argc, char **argv)
   signal(SIGALRM, sigalarm);
   ifconf(tundev, ipaddr);
 
-  while (1) {
+  while(1) {
     maxfd = 0;
     FD_ZERO(&rset);
     FD_ZERO(&wset);
 
-    if (got_sigalarm && ipa_enable) {
+    if(got_sigalarm && ipa_enable) {
       /* Send "?IPA". */
       slip_send(slipfd, '?');
       slip_send(slipfd, 'I');
@@ -996,55 +988,55 @@ main(int argc, char **argv)
       got_sigalarm = 0;
     }
 
-    if (!slip_empty()) {  /* Anything to flush? */
+    if(!slip_empty()) {		/* Anything to flush? */
       FD_SET(slipfd, &wset);
     }
 
-    FD_SET(slipfd, &rset);  /* Read from slip ASAP! */
-    if (slipfd > maxfd) maxfd = slipfd;
+    FD_SET(slipfd, &rset);	/* Read from slip ASAP! */
+    if(slipfd > maxfd) maxfd = slipfd;
 
     /* We only have one packet at a time queued for slip output. */
-    if (slip_empty()) {
+    if(slip_empty()) {
       FD_SET(tunfd, &rset);
-      if (tunfd > maxfd) maxfd = tunfd;
+      if(tunfd > maxfd) maxfd = tunfd;
     }
 
     ret = select(maxfd + 1, &rset, &wset, NULL, NULL);
-    if (ret == -1 && errno != EINTR) {
+    if(ret == -1 && errno != EINTR) {
       err(1, "select");
-    } else if (ret > 0) {
-      if (FD_ISSET(slipfd, &rset)) {
+    } else if(ret > 0) {
+      if(FD_ISSET(slipfd, &rset)) {
         serial_to_tun(inslip, tunfd);
       }
 
-      if (FD_ISSET(slipfd, &wset)) {
-        slip_flushbuf(slipfd);
-        if (ipa_enable) sigalarm_reset();
+      if(FD_ISSET(slipfd, &wset)) {
+	slip_flushbuf(slipfd);
+	if(ipa_enable) sigalarm_reset();
       }
 
       /* Optional delay between outgoing packets */
       /* Base delay times number of 6lowpan fragments to be sent */
-      if (delaymsec) {
-        struct timeval tv;
-        int dmsec;
-        gettimeofday(&tv, NULL) ;
-        dmsec = (tv.tv_sec - delaystartsec) * 1000 + tv.tv_usec / 1000 - delaystartmsec;
-        if (dmsec < 0) delaymsec = 0;
-        if (dmsec > delaymsec) delaymsec = 0;
+      if(delaymsec) {
+       struct timeval tv;
+       int dmsec;
+       gettimeofday(&tv, NULL) ;
+       dmsec=(tv.tv_sec-delaystartsec)*1000+tv.tv_usec/1000-delaystartmsec;
+       if(dmsec<0) delaymsec=0;
+       if(dmsec>delaymsec) delaymsec=0;
       }
-      if (delaymsec == 0) {
+      if(delaymsec==0) {
         int size;
-        if (slip_empty() && FD_ISSET(tunfd, &rset)) {
-          size = tun_to_serial(tunfd, slipfd);
+        if(slip_empty() && FD_ISSET(tunfd, &rset)) {
+          size=tun_to_serial(tunfd, slipfd);
           slip_flushbuf(slipfd);
-          if (ipa_enable) sigalarm_reset();
-          if (basedelay) {
+          if(ipa_enable) sigalarm_reset();
+          if(basedelay) {
             struct timeval tv;
             gettimeofday(&tv, NULL) ;
-//         delaymsec=basedelay*(1+(size/120));//multiply by # of 6lowpan packets?
-            delaymsec = basedelay;
-            delaystartsec = tv.tv_sec;
-            delaystartmsec = tv.tv_usec / 1000;
+ //         delaymsec=basedelay*(1+(size/120));//multiply by # of 6lowpan packets?
+            delaymsec=basedelay;
+            delaystartsec =tv.tv_sec;
+            delaystartmsec=tv.tv_usec/1000;
           }
         }
       }

@@ -80,12 +80,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
-#ifdef __GNUC__
-#define CC_ALIGN_ATTR(n) __attribute__ ((aligned(n)))
-#else
-#define CC_ALIGN_ATTR(n)
-#endif
-/*---------------------------------------------------------------------------*/
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -111,16 +105,6 @@
 #define PROP_MODE_USE_CRC16 PROP_MODE_CONF_USE_CRC16
 #else
 #define PROP_MODE_USE_CRC16 0
-#endif
-/*---------------------------------------------------------------------------*/
-#ifdef PROP_MODE_CONF_SNIFFER
-#define PROP_MODE_SNIFFER PROP_MODE_CONF_SNIFFER
-#else
-#define PROP_MODE_SNIFFER 0
-#endif
-
-#if PROP_MODE_SNIFFER
-static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };
 #endif
 /*---------------------------------------------------------------------------*/
 /**
@@ -241,8 +225,8 @@ const output_config_t *tx_power_current = &output_power[1];
 
 #define RX_BUF_SIZE 140
 /* Receive buffers: 1 frame in each */
-static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN_ATTR(4);
-static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN_ATTR(4);
+static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN(4);
+static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN(4);
 
 /* The RX Data Queue */
 static dataQueue_t rx_data_queue = { 0 };
@@ -254,7 +238,7 @@ volatile static uint8_t *rx_read_entry;
 #define TX_BUF_PAYLOAD_LEN 180
 #define TX_BUF_HDR_LEN       2
 
-static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN_ATTR(4);
+static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN(4);
 /*---------------------------------------------------------------------------*/
 static uint8_t
 rf_is_on(void)
@@ -640,13 +624,14 @@ prepare(const void *payload, unsigned short payload_len)
   int len = MIN(payload_len, TX_BUF_PAYLOAD_LEN);
 
   memcpy(&tx_buf[TX_BUF_HDR_LEN], payload, len);
-  return RF_CORE_CMD_OK;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
 transmit(unsigned short transmit_len)
 {
   int ret;
+  uint8_t was_off = 0;
   uint32_t cmd_status;
   volatile rfc_CMD_PROP_TX_ADV_t *cmd_tx_adv;
 
@@ -654,6 +639,7 @@ transmit(unsigned short transmit_len)
   uint16_t total_length;
 
   if(!rf_is_on()) {
+    was_off = 1;
     if(on() != RF_CORE_CMD_OK) {
       PRINTF("transmit: on() failed\n");
       return RADIO_TX_ERR;
@@ -687,7 +673,7 @@ transmit(unsigned short transmit_len)
   rx_off_prop();
 
   /* Enable the LAST_COMMAND_DONE interrupt to wake us up */
-  rf_core_cmd_done_en(false);
+  rf_core_cmd_done_en(false, false);
 
   ret = rf_core_send_cmd((uint32_t)cmd_tx_adv, &cmd_status);
 
@@ -732,12 +718,16 @@ transmit(unsigned short transmit_len)
    * Disable LAST_FG_COMMAND_DONE interrupt. We don't really care about it
    * except when we are transmitting
    */
-  rf_core_cmd_done_dis();
+  rf_core_cmd_done_dis(false);
 
   /* Workaround. Set status to IDLE */
   cmd_tx_adv->status = RF_CORE_RADIO_OP_STATUS_IDLE;
 
   rx_on_prop();
+
+  if(was_off) {
+    off();
+  }
 
   return ret;
 }
@@ -773,28 +763,7 @@ read_frame(void *buf, unsigned short buf_len)
       }
 
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, (int8_t)data_ptr[len]);
-
-#if PROP_MODE_SNIFFER
-      {
-        int i;
-
-        cc26xx_uart_write_byte(magic[0]);
-        cc26xx_uart_write_byte(magic[1]);
-        cc26xx_uart_write_byte(magic[2]);
-        cc26xx_uart_write_byte(magic[3]);
-
-        cc26xx_uart_write_byte(len + 2);
-
-        for(i = 0; i < len; ++i) {
-          cc26xx_uart_write_byte(((uint8_t *)(buf))[i]);
-        }
-
-        cc26xx_uart_write_byte((uint8_t)rx_stats.lastRssi);
-        cc26xx_uart_write_byte(0x80);
-
-        while(cc26xx_uart_busy() == UART_BUSY);
-      }
-#endif
+      packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, 0x7F);
     }
 
     /* Move read entry pointer to next entry */
@@ -894,18 +863,18 @@ static int
 on(void)
 {
   /*
-   * Request the HF XOSC as the source for the HF clock. Needed before we can
-   * use the FS. This will only request, it will _not_ perform the switch.
-   */
-  oscillators_request_hf_xosc();
-
-  /*
    * If we are in the middle of a BLE operation, we got called by ContikiMAC
    * from within an interrupt context. Abort, but pretend everything is OK.
    */
   if(rf_ble_is_active() == RF_BLE_ACTIVE) {
     return RF_CORE_CMD_OK;
   }
+
+  /*
+   * Request the HF XOSC as the source for the HF clock. Needed before we can
+   * use the FS. This will only request, it will _not_ perform the switch.
+   */
+  oscillators_request_hf_xosc();
 
   if(rf_is_on()) {
     PRINTF("on: We were on. PD=%u, RX=0x%04x \n", rf_core_is_accessible(),
@@ -933,7 +902,7 @@ on(void)
     }
   }
 
-  rf_core_setup_interrupts();
+  rf_core_setup_interrupts(false);
 
   /*
    * Trigger a switch to the XOSC, so that we can subsequently use the RF FS
@@ -968,7 +937,10 @@ off(void)
     return RF_CORE_CMD_OK;
   }
 
+  rx_off_prop();
   rf_core_power_down();
+
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 
   /* Switch HF clock source to the RCOSC to preserve power */
   oscillators_switch_to_hf_rc();
@@ -1057,6 +1029,12 @@ set_value(radio_param_t param, radio_value_t value)
       return RADIO_RESULT_INVALID_VALUE;
     }
 
+    if(get_channel() == (uint8_t)value) {
+      /* We already have that very same channel configured.
+       * Nothing to do here. */
+      return RADIO_RESULT_OK;
+    }
+
     set_channel((uint8_t)value);
     break;
   case RADIO_PARAM_TXPOWER:
@@ -1073,6 +1051,8 @@ set_value(radio_param_t param, radio_value_t value)
       rv = RADIO_RESULT_ERROR;
     }
 
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_RX_MODE:
     return RADIO_RESULT_OK;
   case RADIO_PARAM_CCA_THRESHOLD:
     rssi_threshold = (int8_t)value;
@@ -1095,7 +1075,7 @@ set_value(radio_param_t param, radio_value_t value)
     rv = RADIO_RESULT_ERROR;
   }
 
-  if(rx_on_prop() != RF_CORE_CMD_OK) {
+  if(soft_on_prop() != RF_CORE_CMD_OK) {
     PRINTF("set_value: rx_on_prop() failed\n");
     rv = RADIO_RESULT_ERROR;
   }

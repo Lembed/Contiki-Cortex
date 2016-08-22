@@ -57,6 +57,7 @@
 #include "dev/slip.h"
 #include "dev/cc2538-rf.h"
 #include "dev/udma.h"
+#include "dev/crypto.h"
 #include "usb/usb-serial.h"
 #include "lib/random.h"
 #include "net/netstack.h"
@@ -64,6 +65,7 @@
 #include "net/ip/tcpip.h"
 #include "net/ip/uip.h"
 #include "net/mac/frame802154.h"
+#include "soc.h"
 #include "cpu.h"
 #include "reg.h"
 #include "ieee-addr.h"
@@ -184,6 +186,9 @@ main(void)
 
   PUTS(CONTIKI_VERSION_STRING);
   PUTS(BOARD_STRING);
+#if STARTUP_CONF_VERBOSE
+  soc_print_info();
+#endif
 
   /* Initialise the H/W RNG engine. */
   random_init(0);
@@ -194,6 +199,11 @@ main(void)
   ctimer_init();
 
   board_init();
+
+#if CRYPTO_CONF_INIT
+  crypto_init();
+  crypto_disable();
+#endif
 
   netstack_init();
   set_rf_params();
@@ -212,9 +222,9 @@ main(void)
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
   process_start(&sensors_process, NULL);
-
+#if PLATFORM_HAS_BUTTON
   SENSORS_ACTIVATE(button_sensor);
-
+#endif
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 
